@@ -7,7 +7,11 @@ from conftest import (TOKEN, add_txn, category_id, create_club, post,
 from db import get_db
 
 
+# Each test sets up data through the real routes, then checks the page or the
+# database. Every test gets its own empty database (see conftest.py).
+
 # ---------- unit tests: money helpers ----------
+# parametrize runs the same test once for each (input, expected) pair.
 @pytest.mark.parametrize("text,cents", [
     ("12.50", 1250), ("$1,200", 120000), ("0.01", 1), ("  7 ", 700), ("1000000", 100000000),
 ])
@@ -41,6 +45,7 @@ def test_register_login_logout(client):
 def test_duplicate_username_rejected(client):
     register_and_login(client)
     post(client, "/logout")
+    # Logging out clears the session (and the CSRF token), so put the token back.
     with client.session_transaction() as s:
         s["csrf"] = TOKEN
     resp = post(client, "/register", {"username": "alice", "email": "other@csu.edu",
@@ -174,6 +179,7 @@ def test_search_and_filters(client, app):
     add_txn(client, club_id, category_id(app, club_id, "Donations"), "75", "2026-10-31", "Alumni gift")
 
     def shown(qs):
+        # Load the dashboard with a query string, e.g. shown("q=pizza")
         return client.get(f"/clubs/{club_id}?{qs}").data
 
     assert b"Pizza night" in shown("q=pizza") and b"Bus to conference" not in shown("q=pizza")

@@ -1,3 +1,5 @@
+{# budgets.html - budget vs. actual table for one month (budgets() route), and
+   for the treasurer: forms to set a budget and add a category. #}
 {% extends "base.html" %}
 {% block title %}Budgets · {{ club.name }}{% endblock %}
 {% block content %}
@@ -15,6 +17,7 @@
     <thead><tr><th>Category</th><th class="num">Budget</th><th class="num">Spent</th><th class="num">Remaining</th><th>Used</th></tr></thead>
     <tbody>
     {% for r in rows %}
+      {# pct = percent of budget used; the bar turns red ("over") above 100% #}
       {% set pct = ((r.spent / r.budget * 100) if r.budget else 0) %}
       <tr>
         <td>{{ r.name }}</td>

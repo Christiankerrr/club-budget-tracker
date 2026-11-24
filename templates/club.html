@@ -1,8 +1,11 @@
+{# club.html - the club dashboard (club_dashboard() route): balance and totals,
+   the search/filter form, the transaction table, and the member list. #}
 {% extends "base.html" %}
 {% block title %}{{ club.name }}{% endblock %}
 {% block content %}
 {% include "_club_nav.html" %}
 
+{# Stat cards: balance comes from the club_balances view #}
 <div class="stats">
   <div class="stat"><span>Balance</span><strong class="{{ 'neg' if balance < 0 }}">{{ balance|money }}</strong></div>
   <div class="stat"><span>Total income</span><strong class="pos">{{ totals.income|money }}</strong></div>
@@ -14,6 +17,9 @@
     <h2>Transactions</h2>
     <a class="button primary" href="{{ url_for('main.new_transaction', club_id=club.club_id) }}">+ Add transaction</a>
   </div>
+  {# Filter form uses GET, so filters appear in the URL (?q=pizza&type=expense...)
+     and build_transaction_filters() in app.py reads them. The value="..." parts
+     refill each box with what the user searched for. #}
   <form method="get" class="filters">
     <input name="q" placeholder="Search description or category" value="{{ filters.get('q', '') }}">
     <select name="type">
@@ -48,6 +54,7 @@
         <td class="muted">{{ t.username or '—' }}</td>
         <td class="num {{ 'pos' if t.type == 'income' else 'neg' }}">{{ '+' if t.type == 'income' else '−' }}{{ t.amount_cents|money }}</td>
         <td class="actions">
+          {# Only show Edit/Delete if allowed (the server checks again, this just hides the buttons) #}
           {% if club.role == 'treasurer' or t.created_by == g.user.user_id %}
           <a href="{{ url_for('main.edit_transaction', club_id=club.club_id, txn_id=t.transaction_id) }}">Edit</a>
           <form method="post" class="inline" action="{{ url_for('main.delete_transaction', club_id=club.club_id, txn_id=t.transaction_id) }}" onsubmit="return confirm('Delete this transaction?');">

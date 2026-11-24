@@ -1,3 +1,5 @@
+{# clubs.html - "My Clubs": one card per club (from the clubs() route), plus
+   forms to create a new club or join one with a code. #}
 {% extends "base.html" %}
 {% block title %}My Clubs{% endblock %}
 {% block content %}
@@ -8,6 +10,7 @@
   <a class="card club-card" href="{{ url_for('main.club_dashboard', club_id=c.club_id) }}">
     <h2>{{ c.name }}</h2>
     <p class="muted">{{ c.description or '' }}</p>
+    {# |money is our custom filter (format_cents) - turns 145286 into $1,452.86 #}
     <p class="balance {{ 'neg' if c.balance_cents < 0 }}">{{ c.balance_cents|money }}</p>
     <span class="tag">{{ c.role }}</span>
   </a>

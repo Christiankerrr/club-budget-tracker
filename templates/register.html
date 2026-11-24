@@ -1,9 +1,11 @@
+{# register.html - sign-up form. Submits back to /register (the register() route). #}
 {% extends "base.html" %}
 {% block title %}Register{% endblock %}
 {% block content %}
 <section class="card narrow">
   <h1>Create an account</h1>
   <form method="post">
+    {# Hidden CSRF token - every POST form needs this or the server returns 400 #}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label>Username <input name="username" required minlength="3" maxlength="30"></label>
     <label>Email <input name="email" type="email" required></label>

@@ -1,3 +1,6 @@
+{# transaction_form.html - used for BOTH "add" (txn is None) and "edit" (txn is the
+   row being edited). Each field shows, in order: what the user just typed
+   (if the form had an error), else the saved value, else a default. #}
 {% extends "base.html" %}
 {% block title %}{{ 'Edit' if txn else 'Add' }} transaction{% endblock %}
 {% block content %}
@@ -7,6 +10,7 @@
   <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label>Category
+      {# Categories grouped into Income / Expense; the category decides the type #}
       <select name="category_id" required>
         <optgroup label="Income">
         {% for c in categories if c.type == 'income' %}

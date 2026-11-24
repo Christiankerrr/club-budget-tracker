@@ -1,3 +1,6 @@
+{# base.html - the layout every page shares: top bar, flash messages, and a
+   "content" block. Other templates start with {% extends "base.html" %}
+   and fill in {% block content %}. #}
 <!doctype html>
 <html lang="en">
 <head>
@@ -10,9 +13,11 @@
 <header class="topbar">
   <a class="brand" href="{{ url_for('main.index') }}">Club Budget Tracker</a>
   <nav>
+    {# g.user is set in app.py before every request; None when logged out #}
     {% if g.user %}
       <a href="{{ url_for('main.clubs') }}">My Clubs</a>
       <span class="muted">{{ g.user.username }}</span>
+      {# Logout is a POST form (not a link) so it carries the CSRF token #}
       <form method="post" action="{{ url_for('main.logout') }}" class="inline">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="link">Log out</button>
@@ -24,11 +29,13 @@
   </nav>
 </header>
 <main class="container">
+  {# Messages from flash() in app.py; category (success/error/info) picks the color #}
   {% for category, message in get_flashed_messages(with_categories=true) %}
     <div class="flash {{ category }}">{{ message }}</div>
   {% endfor %}
   {% block content %}{% endblock %}
 </main>
+{# Pages that need JavaScript (reports.html) put it here #}
 {% block scripts %}{% endblock %}
 </body>
 </html>

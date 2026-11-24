@@ -1,3 +1,5 @@
+{# reports.html - date-range form, summary cards, two charts, and two tables
+   (reports() route). The CSV link passes the same start/end to reports_csv(). #}
 {% extends "base.html" %}
 {% block title %}Reports · {{ club.name }}{% endblock %}
 {% block content %}
@@ -35,15 +37,19 @@
 </div>
 {% endblock %}
 {% block scripts %}
+{# Chart.js library from a CDN (needs internet; the tables still work without it) #}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
+  // tojson safely turns the Python "chart" dict from app.py into a JavaScript object
   const data = {{ chart|tojson }};
   if (window.Chart) {
+    // Doughnut chart: how much was spent in each expense category
     new Chart(document.getElementById('catChart'), {
       type: 'doughnut',
       data: { labels: data.categoryLabels, datasets: [{ data: data.categoryValues }] },
       options: { plugins: { legend: { position: 'right' } } }
     });
+    // Bar chart: income (green) next to expenses (red) for each month
     new Chart(document.getElementById('monthChart'), {
       type: 'bar',
       data: { labels: data.months, datasets: [
