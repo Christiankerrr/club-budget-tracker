@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Budgets · {{ club.name }}{% endblock %}
+{% block content %}
+{% include "_club_nav.html" %}
+<section class="card">
+  <div class="row-between">
+    <h2>Budget vs. actual — {{ period }}</h2>
+    <form method="get" class="inline">
+      <input type="month" name="period" value="{{ period }}">
+      <button>Show</button>
+    </form>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Category</th><th class="num">Budget</th><th class="num">Spent</th><th class="num">Remaining</th><th>Used</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      {% set pct = ((r.spent / r.budget * 100) if r.budget else 0) %}
+      <tr>
+        <td>{{ r.name }}</td>
+        <td class="num">{{ r.budget|money if r.budget is not none else '—' }}</td>
+        <td class="num">{{ r.spent|money }}</td>
+        <td class="num {{ 'neg' if r.budget is not none and r.spent > r.budget }}">{{ (r.budget - r.spent)|money if r.budget is not none else '—' }}</td>
+        <td>{% if r.budget %}<div class="bar"><div class="fill {{ 'over' if pct > 100 }}" style="width: {{ [pct, 100]|min }}%"></div></div> {{ pct|round|int }}%{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+{% if club.role == 'treasurer' %}
+<div class="grid two">
+  <section class="card">
+    <h2>Set a budget for {{ period }}</h2>
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="period" value="{{ period }}">
+      <label>Expense category
+        <select name="category_id">{% for c in categories if c.type == 'expense' %}<option value="{{ c.category_id }}">{{ c.name }}</option>{% endfor %}</select>
+      </label>
+      <label>Monthly amount ($) <input name="amount" inputmode="decimal" required></label>
+      <button class="primary">Save budget</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Add a category</h2>
+    <form method="post" action="{{ url_for('main.add_category', club_id=club.club_id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Name <input name="name" required maxlength="40"></label>
+      <label>Type <select name="type"><option value="expense">Expense</option><option value="income">Income</option></select></label>
+      <button class="primary">Add category</button>
+    </form>
+  </section>
+</div>
+{% else %}
+<p class="muted">Only the treasurer can set budgets and add categories.</p>
+{% endif %}
+{% endblock %}

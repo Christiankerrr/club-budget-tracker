@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}My Clubs{% endblock %}
+{% block content %}
+<h1>My Clubs</h1>
+{% if clubs %}
+<div class="grid">
+  {% for c in clubs %}
+  <a class="card club-card" href="{{ url_for('main.club_dashboard', club_id=c.club_id) }}">
+    <h2>{{ c.name }}</h2>
+    <p class="muted">{{ c.description or '' }}</p>
+    <p class="balance {{ 'neg' if c.balance_cents < 0 }}">{{ c.balance_cents|money }}</p>
+    <span class="tag">{{ c.role }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<p class="muted">You are not in any clubs yet. Create one or join with a code.</p>
+{% endif %}
+
+<div class="grid two">
+  <section class="card">
+    <h2>Create a club</h2>
+    <form method="post" action="{{ url_for('main.create_club') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Club name <input name="name" required maxlength="80"></label>
+      <label>Description <input name="description" maxlength="200"></label>
+      <button class="primary">Create</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Join a club</h2>
+    <form method="post" action="{{ url_for('main.join_club') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Join code <input name="join_code" required maxlength="6" placeholder="e.g. 3FA9C1"></label>
+      <button class="primary">Join</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

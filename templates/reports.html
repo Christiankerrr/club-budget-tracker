@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Reports · {{ club.name }}{% endblock %}
+{% block content %}
+{% include "_club_nav.html" %}
+<form method="get" class="filters card">
+  <label class="compact">From <input type="date" name="start" value="{{ start }}"></label>
+  <label class="compact">To <input type="date" name="end" value="{{ end }}"></label>
+  <button>Run report</button>
+  <a href="{{ url_for('main.reports_csv', club_id=club.club_id, start=start, end=end) }}">Download CSV</a>
+</form>
+
+<div class="stats">
+  <div class="stat"><span>Income {{ 'in range' if start or end }}</span><strong class="pos">{{ totals.income|money }}</strong></div>
+  <div class="stat"><span>Expenses {{ 'in range' if start or end }}</span><strong class="neg">{{ totals.expense|money }}</strong></div>
+  <div class="stat"><span>Net {{ 'in range' if start or end }}</span><strong>{{ (totals.income - totals.expense)|money }}</strong></div>
+  <div class="stat"><span>Funds left (all time)</span><strong class="{{ 'neg' if balance < 0 }}">{{ balance|money }}</strong></div>
+</div>
+
+<div class="grid two">
+  <section class="card"><h2>Expenses by category</h2><canvas id="catChart" height="260"></canvas></section>
+  <section class="card"><h2>Income vs. expenses by month</h2><canvas id="monthChart" height="260"></canvas></section>
+</div>
+
+<div class="grid two">
+  <section class="card">
+    <h2>By category</h2>
+    <table><thead><tr><th>Category</th><th>Type</th><th class="num">#</th><th class="num">Total</th></tr></thead>
+    <tbody>{% for r in by_category %}<tr><td>{{ r.name }}</td><td>{{ r.type }}</td><td class="num">{{ r.n }}</td><td class="num">{{ r.total|money }}</td></tr>{% else %}<tr><td colspan="4" class="muted">No data</td></tr>{% endfor %}</tbody></table>
+  </section>
+  <section class="card">
+    <h2>By month</h2>
+    <table><thead><tr><th>Month</th><th class="num">Income</th><th class="num">Expenses</th><th class="num">Net</th></tr></thead>
+    <tbody>{% for r in by_month %}<tr><td>{{ r.month }}</td><td class="num">{{ r.income|money }}</td><td class="num">{{ r.expense|money }}</td><td class="num">{{ (r.income - r.expense)|money }}</td></tr>{% else %}<tr><td colspan="4" class="muted">No data</td></tr>{% endfor %}</tbody></table>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const data = {{ chart|tojson }};
+  if (window.Chart) {
+    new Chart(document.getElementById('catChart'), {
+      type: 'doughnut',
+      data: { labels: data.categoryLabels, datasets: [{ data: data.categoryValues }] },
+      options: { plugins: { legend: { position: 'right' } } }
+    });
+    new Chart(document.getElementById('monthChart'), {
+      type: 'bar',
+      data: { labels: data.months, datasets: [
+        { label: 'Income', data: data.monthIncome, backgroundColor: '#2e8b57' },
+        { label: 'Expenses', data: data.monthExpense, backgroundColor: '#c0392b' } ] },
+      options: { scales: { y: { beginAtZero: true } } }
+    });
+  }
+</script>
+{% endblock %}

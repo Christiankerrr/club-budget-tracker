@@ -1,0 +1,11 @@
+<div class="club-head">
+  <div>
+    <h1>{{ club.name }}</h1>
+    <p class="muted">{{ club.description or '' }} · Join code <code>{{ club.join_code }}</code> · You are <strong>{{ club.role }}</strong></p>
+  </div>
+  <nav class="tabs">
+    <a href="{{ url_for('main.club_dashboard', club_id=club.club_id) }}">Transactions</a>
+    <a href="{{ url_for('main.budgets', club_id=club.club_id) }}">Budgets</a>
+    <a href="{{ url_for('main.reports', club_id=club.club_id) }}">Reports</a>
+  </nav>
+</div>

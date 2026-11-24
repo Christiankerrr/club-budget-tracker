@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if txn else 'Add' }} transaction{% endblock %}
+{% block content %}
+{% include "_club_nav.html" %}
+<section class="card narrow">
+  <h2>{{ 'Edit' if txn else 'Add' }} transaction</h2>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Category
+      <select name="category_id" required>
+        <optgroup label="Income">
+        {% for c in categories if c.type == 'income' %}
+          <option value="{{ c.category_id }}" {{ 'selected' if txn and txn.category_id == c.category_id }}>{{ c.name }}</option>
+        {% endfor %}
+        </optgroup>
+        <optgroup label="Expense">
+        {% for c in categories if c.type == 'expense' %}
+          <option value="{{ c.category_id }}" {{ 'selected' if txn and txn.category_id == c.category_id }}>{{ c.name }}</option>
+        {% endfor %}
+        </optgroup>
+      </select>
+    </label>
+    <label>Amount ($)
+      <input name="amount" inputmode="decimal" required placeholder="0.00"
+             value="{{ request.form.get('amount') or ('%.2f'|format(txn.amount_cents / 100) if txn else '') }}">
+    </label>
+    <label>Date <input type="date" name="txn_date" required value="{{ request.form.get('txn_date') or (txn.txn_date if txn else today) }}"></label>
+    <label>Description <input name="description" maxlength="200" value="{{ request.form.get('description') or (txn.description if txn else '') }}"></label>
+    <button class="primary">Save</button>
+    <a href="{{ url_for('main.club_dashboard', club_id=club.club_id) }}">Cancel</a>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ club.name }}{% endblock %}
+{% block content %}
+{% include "_club_nav.html" %}
+
+<div class="stats">
+  <div class="stat"><span>Balance</span><strong class="{{ 'neg' if balance < 0 }}">{{ balance|money }}</strong></div>
+  <div class="stat"><span>Total income</span><strong class="pos">{{ totals.income|money }}</strong></div>
+  <div class="stat"><span>Total expenses</span><strong class="neg">{{ totals.expense|money }}</strong></div>
+</div>
+
+<section class="card">
+  <div class="row-between">
+    <h2>Transactions</h2>
+    <a class="button primary" href="{{ url_for('main.new_transaction', club_id=club.club_id) }}">+ Add transaction</a>
+  </div>
+  <form method="get" class="filters">
+    <input name="q" placeholder="Search description or category" value="{{ filters.get('q', '') }}">
+    <select name="type">
+      <option value="">All types</option>
+      <option value="income" {{ 'selected' if filters.get('type') == 'income' }}>Income</option>
+      <option value="expense" {{ 'selected' if filters.get('type') == 'expense' }}>Expense</option>
+    </select>
+    <select name="category">
+      <option value="">All categories</option>
+      {% for c in categories %}
+      <option value="{{ c.category_id }}" {{ 'selected' if filters.get('category') == c.category_id|string }}>{{ c.name }} ({{ c.type }})</option>
+      {% endfor %}
+    </select>
+    <label class="compact">From <input type="date" name="start" value="{{ filters.get('start', '') }}"></label>
+    <label class="compact">To <input type="date" name="end" value="{{ filters.get('end', '') }}"></label>
+    <input name="min" placeholder="Min $" size="6" value="{{ filters.get('min', '') }}">
+    <input name="max" placeholder="Max $" size="6" value="{{ filters.get('max', '') }}">
+    <button>Filter</button>
+    <a href="{{ url_for('main.club_dashboard', club_id=club.club_id) }}">Clear</a>
+  </form>
+
+  {% if txns %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Entered by</th><th class="num">Amount</th><th></th></tr></thead>
+    <tbody>
+    {% for t in txns %}
+      <tr>
+        <td>{{ t.txn_date }}</td>
+        <td><span class="tag {{ t.type }}">{{ t.category }}</span></td>
+        <td>{{ t.description or '' }}</td>
+        <td class="muted">{{ t.username or '—' }}</td>
+        <td class="num {{ 'pos' if t.type == 'income' else 'neg' }}">{{ '+' if t.type == 'income' else '−' }}{{ t.amount_cents|money }}</td>
+        <td class="actions">
+          {% if club.role == 'treasurer' or t.created_by == g.user.user_id %}
+          <a href="{{ url_for('main.edit_transaction', club_id=club.club_id, txn_id=t.transaction_id) }}">Edit</a>
+          <form method="post" class="inline" action="{{ url_for('main.delete_transaction', club_id=club.club_id, txn_id=t.transaction_id) }}" onsubmit="return confirm('Delete this transaction?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="link danger">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">{{ txns|length }} transaction{{ '' if txns|length == 1 else 's' }} shown.</p>
+  {% else %}
+  <p class="muted">No transactions match.</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Members</h2>
+  <ul class="members">{% for m in members %}<li>{{ m.username }} <span class="tag">{{ m.role }}</span></li>{% endfor %}</ul>
+</section>
+{% endblock %}
